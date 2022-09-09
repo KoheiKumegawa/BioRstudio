@@ -41,7 +41,11 @@ npm \
 libnode-dev \
 librsvg2-bin \
 libavfilter-dev \
-libpoppler-cpp-dev
+libpoppler-cpp-dev \
+libtesseract-dev \
+libleptonica-dev \
+tesseract-ocr-eng \
+libmagick++-dev
 
 #---------- Japanese ----------#
 RUN echo "ja_JP.UTF-8 UTF-8" >> /etc/locale.gen
@@ -65,7 +69,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip3 install MACS2
 
 #---------- R packages ----------#
-RUN install2.r --error --deps TRUE --ncpus -1 \
+RUN install2.r --deps TRUE --ncpus -1 \
 devtools \
 BiocManager \
 remotes \
@@ -83,19 +87,17 @@ uwot \
 readr \
 statmod \
 DT \
-NMF \
-magick \
 mclust
+
+RUN R -e "BiocManager::install(c('BSgenome.Hsapiens.UCSC.hg19','BSgenome.Hsapiens.UCSC.hg38','BSgenome.Mmusculus.UCSC.mm10','TxDb.Hsapiens.UCSC.hg38.knownGene','TxDb.Hsapiens.UCSC.hg19.knownGene','TxDb.Mmusculus.UCSC.mm10.knownGene','org.Hs.eg.db','org.Mm.eg.db'))"
+RUN R -e "BiocManager::install(c('Biobase','BiocVersion','SummarizedExperiment','Rsamtools','edgeR','rtracklayer','ComplexHeatmap','ChIPpeakAnno','ChIPseeker','clusterProfiler','limma','slingshot','destiny', 'DiffBind'))"
+RUN R -e "BiocManager::install('preprocessCore', configure.args='--disable-threading', force = TRUE)"
+RUN R -e "BiocManager::install(c('BioinformaticsFMRP/TCGAbiolinksGUI.data', 'BioinformaticsFMRP/TCGAbiolinks'))"
 
 ENV URL=https://cran.r-project.org/src/contrib/Archive/Cairo/Cairo_1.5-14.tar.gz
 RUN cd $HOME/bin && wget $URL && R CMD INSTALL Cairo_1.5-14.tar.gz
 ENV URL=https://cran.r-project.org/src/contrib/Archive/rsvd/rsvd_1.0.3.tar.gz
 RUN cd $HOME/bin && wget $URL && R CMD INSTALL rsvd_1.0.3.tar.gz
-
-RUN R -e "BiocManager::install(c('BSgenome.Hsapiens.UCSC.hg19','BSgenome.Hsapiens.UCSC.hg38','BSgenome.Mmusculus.UCSC.mm10','TxDb.Hsapiens.UCSC.hg38.knownGene','TxDb.Hsapiens.UCSC.hg19.knownGene','TxDb.Mmusculus.UCSC.mm10.knownGene','org.Hs.eg.db','org.Mm.eg.db'))"
-RUN R -e "BiocManager::install(c('SummarizedExperiment','Rsamtools','edgeR','rtracklayer','ComplexHeatmap','ChIPpeakAnno','ChIPseeker','clusterProfiler','limma','slingshot','destiny'))"
-RUN R -e "BiocManager::install('preprocessCore', configure.args='--disable-threading', force = TRUE)"
-RUN R -e "BiocManager::install(c('BioinformaticsFMRP/TCGAbiolinksGUI.data', 'BioinformaticsFMRP/TCGAbiolinks'))"
 
 RUN installGithub.r --deps TRUE \
 immunogenomics/presto \
@@ -104,6 +106,8 @@ GreenleafLab/chromVARmotifs
 RUN R -e "devtools::install_github('GreenleafLab/ArchR', ref='release_1.0.2', repos = BiocManager::repositories())"
 RUN R -e "ArchR::installExtraPackages()"
 RUN R -e "remotes::install_version('spatstat', version = '1.64-1', upgrade = 'never')"
+
+RUN install2.r --deps TRUE --ncpus -1 NMF
 
 #---------- User docker ----------#
 WORKDIR $HOME
